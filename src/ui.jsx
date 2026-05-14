@@ -179,7 +179,8 @@ function CandidateAvatar({ candidate, size = 36, className = '' }) {
         alt={candidate.name}
         draggable="false"
         onError={() => setErrored(true)}
-        className="w-full h-full object-cover object-top select-none"
+        style={{ objectPosition: candidate.imagePosition || 'center top' }}
+        className="w-full h-full object-cover select-none"
       />
     </div>
   );

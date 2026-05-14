@@ -6,7 +6,7 @@ const CANDIDATES = [
   { id: 'fajardo',    name: 'Sergio Fajardo',        shortName: 'Sergio Fajardo',   party: 'Dignidad y Compromiso',    initials: 'SF', color: '#2F6B5E', image: 'assets/candidates/fajardo.png' },
   { id: 'lopez',      name: 'Claudia López',         shortName: 'Claudia López',    party: 'Imparables',               initials: 'CL', color: '#B0892F', image: 'assets/candidates/lopez.png' },
   { id: 'valencia',   name: 'Paloma Valencia',       shortName: 'Paloma Valencia',  party: 'Centro Democrático',       initials: 'PV', color: '#3F4A5C', image: 'assets/candidates/valencia.png' },
-  { id: 'espriella',  name: 'Abelardo de la Espriella', shortName: 'A. de la Espriella', party: 'Defensores de la Patria', initials: 'AE', color: '#5A2A2F', image: 'assets/candidates/espriella.png' },
+  { id: 'espriella',  name: 'Abelardo de la Espriella', shortName: 'A. de la Espriella', party: 'Defensores de la Patria', initials: 'AE', color: '#5A2A2F', image: 'assets/candidates/espriella.png', imagePosition: '58% 22%' },
 ];
 
 const DIMENSIONS = [
