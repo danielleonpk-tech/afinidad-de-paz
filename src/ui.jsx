@@ -152,6 +152,39 @@ function LikertButton({ value, label, selected, onClick }) {
   );
 }
 
+// Avatar redondo de candidato con foto + fallback a iniciales
+function CandidateAvatar({ candidate, size = 36, className = '' }) {
+  const [errored, setErrored] = useState(false);
+  const px = typeof size === 'number' ? size + 'px' : size;
+  const initialsPx = Math.max(10, Math.round((typeof size === 'number' ? size : 36) * 0.36));
+  if (errored || !candidate.image) {
+    return (
+      <div
+        className={"shrink-0 rounded-full grid place-items-center text-paper font-medium " + className}
+        style={{ width: px, height: px, background: candidate.color, fontSize: initialsPx + 'px' }}
+        aria-label={candidate.name}
+      >
+        {candidate.initials}
+      </div>
+    );
+  }
+  return (
+    <div
+      className={"shrink-0 rounded-full overflow-hidden ring-1 ring-ink-100 " + className}
+      style={{ width: px, height: px, background: candidate.color }}
+      aria-label={candidate.name}
+    >
+      <img
+        src={candidate.image}
+        alt={candidate.name}
+        draggable="false"
+        onError={() => setErrored(true)}
+        className="w-full h-full object-cover object-top select-none"
+      />
+    </div>
+  );
+}
+
 // Bar with animated fill — used in results
 function ResultBar({ value, max=100, color='#161B22', delayMs=0, height='h-3' }) {
   const [w, setW] = useState(0);
@@ -202,7 +235,7 @@ function FootDisclaimer() {
   return (
     <p className="text-[11px] leading-relaxed text-ink-500 mt-6">
       Instrumento elaborado por el <span className="text-ink-700 font-medium">Instituto Colombo-Alemán para la Paz (CAPAZ)</span>.
-      No es una encuesta de intención de voto ni una recomendación electoral. Versión 1.1 — pretest mayo 2026.
+      No es una encuesta de intención de voto ni una recomendación electoral.
     </p>
   );
 }
@@ -210,5 +243,6 @@ function FootDisclaimer() {
 Object.assign(window, {
   Logo, Stamp, Hairline, AppHeader, ProgressBar, Page,
   PrimaryBtn, GhostBtn, TextBtn,
-  ChoiceCard, MultiCard, LikertButton, ResultBar, FootDisclaimer, Modal
+  ChoiceCard, MultiCard, LikertButton, ResultBar, FootDisclaimer, Modal,
+  CandidateAvatar
 });

@@ -2,27 +2,88 @@
 // Matriz, ítems, dimensiones, candidatos.
 
 const CANDIDATES = [
-  { id: 'cepeda',     name: 'Iván Cepeda',           shortName: 'Iván Cepeda',      party: 'Pacto Histórico',          initials: 'IC', color: '#7A2A2A' },
-  { id: 'fajardo',    name: 'Sergio Fajardo',        shortName: 'Sergio Fajardo',   party: 'Dignidad y Compromiso',    initials: 'SF', color: '#2F6B5E' },
-  { id: 'lopez',      name: 'Claudia López',         shortName: 'Claudia López',    party: 'Imparables',               initials: 'CL', color: '#B0892F' },
-  { id: 'valencia',   name: 'Paloma Valencia',       shortName: 'Paloma Valencia',  party: 'Centro Democrático',       initials: 'PV', color: '#3F4A5C' },
-  { id: 'espriella',  name: 'Abelardo de la Espriella', shortName: 'A. de la Espriella', party: 'Defensores de la Patria', initials: 'AE', color: '#5A2A2F' },
+  { id: 'cepeda',     name: 'Iván Cepeda',           shortName: 'Iván Cepeda',      party: 'Pacto Histórico',          initials: 'IC', color: '#7A2A2A', image: 'assets/candidates/cepeda.png' },
+  { id: 'fajardo',    name: 'Sergio Fajardo',        shortName: 'Sergio Fajardo',   party: 'Dignidad y Compromiso',    initials: 'SF', color: '#2F6B5E', image: 'assets/candidates/fajardo.png' },
+  { id: 'lopez',      name: 'Claudia López',         shortName: 'Claudia López',    party: 'Imparables',               initials: 'CL', color: '#B0892F', image: 'assets/candidates/lopez.png' },
+  { id: 'valencia',   name: 'Paloma Valencia',       shortName: 'Paloma Valencia',  party: 'Centro Democrático',       initials: 'PV', color: '#3F4A5C', image: 'assets/candidates/valencia.png' },
+  { id: 'espriella',  name: 'Abelardo de la Espriella', shortName: 'A. de la Espriella', party: 'Defensores de la Patria', initials: 'AE', color: '#5A2A2F', image: 'assets/candidates/espriella.png' },
 ];
 
 const DIMENSIONS = [
   { id: 'A', label: 'Negociaciones con grupos armados', short: 'Negociaciones',
-    desc: 'ELN, disidencias, Clan del Golfo' },
+    desc: 'ELN, disidencias, Clan del Golfo',
+    postures: {
+      high: 'A favor de continuar las negociaciones políticas con los grupos armados y reconocerles estatus político.',
+      mid:  'Postura mixta: abierto a negociar bajo condiciones específicas o caso por caso.',
+      low:  'En contra de negociar: prefiere el sometimiento a la justicia o la confrontación militar.'
+    }
+  },
   { id: 'B', label: 'Implementación del Acuerdo de 2016', short: 'Acuerdo 2016',
-    desc: 'Reforma rural, sistema integral, integralidad' },
+    desc: 'Reforma rural, sistema integral, integralidad',
+    postures: {
+      high: 'A favor de implementar íntegramente el Acuerdo de 2016 y acelerar la reforma rural y el Sistema Integral.',
+      mid:  'Implementación parcial o selectiva del Acuerdo: respaldo a algunos puntos, no a todos.',
+      low:  'Crítico del Acuerdo: no prioriza su implementación íntegra.'
+    }
+  },
   { id: 'C', label: 'Justicia transicional y JEP', short: 'JEP',
-    desc: 'Estructura, reforma o eliminación del tribunal' },
+    desc: 'Estructura, reforma o eliminación del tribunal',
+    postures: {
+      high: 'A favor de mantener la JEP y el Sistema Integral en su forma actual.',
+      mid:  'A favor de reformar la JEP (sala militar, doble instancia) sin eliminarla.',
+      low:  'A favor de eliminar la JEP y trasladar los casos a la justicia ordinaria.'
+    }
+  },
   { id: 'D', label: 'Modelo de seguridad y uso de la fuerza', short: 'Seguridad',
-    desc: 'Vía militar, Bukele, seguridad humana' },
+    desc: 'Vía militar, Bukele, seguridad humana',
+    postures: {
+      high: 'Prioriza la seguridad humana y la inversión social en los territorios sobre la confrontación militar.',
+      mid:  'Combina presencia militar e inversión social, sin un énfasis claro en uno u otro.',
+      low:  'A favor de la confrontación militar y modelos de mano dura (estilo Bukele) para reducir la violencia.'
+    }
+  },
   { id: 'E', label: 'Política antidrogas', short: 'Drogas',
-    desc: 'Glifosato y sustitución de cultivos' },
+    desc: 'Glifosato y sustitución de cultivos',
+    postures: {
+      high: 'A favor de la sustitución voluntaria y concertada de cultivos; en contra del glifosato como herramienta principal.',
+      mid:  'Mezcla erradicación forzosa con sustitución voluntaria, sin descartar el glifosato.',
+      low:  'A favor del glifosato y la erradicación forzosa como herramienta principal contra los cultivos ilícitos.'
+    }
+  },
   { id: 'F', label: 'Víctimas y reparación', short: 'Víctimas',
-    desc: 'Equidad en el reconocimiento y reparación' },
+    desc: 'Equidad en el reconocimiento y reparación',
+    postures: {
+      high: 'A favor de reparar con la misma prioridad a las víctimas del Estado, paramilitares y guerrillas.',
+      mid:  'Reconocimiento parcial: prioriza a unas víctimas sobre otras según el contexto.',
+      low:  'Prioriza a las víctimas de las FARC sobre las víctimas del Estado y los paramilitares.'
+    }
+  },
 ];
+
+// Ítems cuya respuesta "alta" representa la postura OPUESTA a la formulación general de la dimensión,
+// aunque no estén marcados como `inverse` para el cálculo de afinidad. Se usan solo para clasificar postura.
+const DIM_POSTURE_OVERRIDES_INVERT = new Set([10, 11, 13]);
+
+function dimensionPostureScore(candidateId, dimId, matrix, items) {
+  let sum = 0, n = 0;
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.dim !== dimId) continue;
+    const v = matrix[candidateId][i];
+    if (v == null) continue;
+    const invert = it.inverse || DIM_POSTURE_OVERRIDES_INVERT.has(it.n);
+    sum += invert ? (6 - v) : v;
+    n += 1;
+  }
+  return n === 0 ? null : sum / n;
+}
+
+function dimensionPostureKey(score) {
+  if (score == null) return null;
+  if (score >= 3.75) return 'high';
+  if (score <= 2.25) return 'low';
+  return 'mid';
+}
 
 // Ítems en el orden 1..16 con su dimensión.
 const ITEMS = [
@@ -71,11 +132,11 @@ const MATRIX = {
 };
 
 const LIKERT_LABELS = [
-  { v:1, label:'Totalmente en desacuerdo', short:'TD' },
-  { v:2, label:'En desacuerdo',             short:'D'  },
-  { v:3, label:'Ni de acuerdo ni en desacuerdo', short:'N' },
-  { v:4, label:'De acuerdo',                short:'A'  },
   { v:5, label:'Totalmente de acuerdo',     short:'TA' },
+  { v:4, label:'De acuerdo',                short:'A'  },
+  { v:3, label:'Ni de acuerdo ni en desacuerdo', short:'N' },
+  { v:2, label:'En desacuerdo',             short:'D'  },
+  { v:1, label:'Totalmente en desacuerdo', short:'TD' },
 ];
 
 const DEPARTAMENTOS = [
@@ -104,7 +165,7 @@ function computeAffinity(userResponses, priorities, matrix, items) {
       const distance = Math.abs(u - c);
       const aff = 1 - distance / 4;
       const dim = items[i].dim;
-      const weight = priorities.has(dim) ? 1.5 : 1.0;
+      const weight = priorities.has(dim) ? 2.0 : 1.0;
       sumW += weight;
       sumWA += weight * aff;
       if (!perDim[dim]) perDim[dim] = { sumW: 0, sumWA: 0, n: 0 };
@@ -144,4 +205,5 @@ function itemContributions(userResponses, candidateId, matrix, items) {
 Object.assign(window, {
   CANDIDATES, DIMENSIONS, ITEMS, MATRIX, LIKERT_LABELS, DEPARTAMENTOS,
   computeAffinity, computeUnweightedAffinity, itemContributions,
+  dimensionPostureScore, dimensionPostureKey,
 });

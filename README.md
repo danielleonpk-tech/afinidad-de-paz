@@ -1,8 +1,7 @@
-# Encuesta de afinidad — Paz y conflicto armado · CAPAZ
+# afiniPaz — Paz y conflicto armado · CAPAZ
 
 Aplicación web (SPA) del Instituto Colombo‑Alemán para la Paz (CAPAZ) para que la ciudadanía compare sus posiciones, ítem por ítem, con las de los cinco principales candidatos a la Presidencia de Colombia 2026 en el eje de paz y conflicto armado.
 
-- **Versión del instrumento:** 1.1 (pretest mayo 2026)
 - **Tiempo estimado:** 5 a 7 minutos
 - **Tecnologías:** HTML estático + React (vía CDN) + Tailwind (CDN). Sin _build step_.
 
@@ -22,7 +21,8 @@ Aplicación web (SPA) del Instituto Colombo‑Alemán para la Paz (CAPAZ) para q
 ├── assets/
 │   ├── capaz-logo.png      ← Logo institucional
 │   ├── favicon.png         ← Favicon
-│   └── og-image.png        ← Imagen de previsualización en redes (1200×630)
+│   ├── og-image.png        ← Imagen de previsualización en redes (1200×630)
+│   └── candidates/         ← Fotos de los candidatos (cepeda.png, fajardo.png, lopez.png, valencia.png, espriella.png)
 ├── vercel.json             ← Configuración de despliegue
 ├── robots.txt
 └── .gitignore

@@ -72,18 +72,20 @@ function App() {
 
   if (state.step === 'items') {
     const idx = state.itemIndex;
-    const advance = (val) => {
-      const responses = state.responses.slice();
-      responses[idx] = val;
-      const nextIdx = idx + 1;
-      if (nextIdx >= ITEMS.length) {
-        setState(s => ({ ...s, responses, step: 'vote' }));
-      } else {
-        setState(s => ({ ...s, responses, itemIndex: nextIdx }));
-      }
+    const setResponse = (val) => {
+      setState(s => {
+        const responses = s.responses.slice();
+        responses[idx] = val;
+        return { ...s, responses };
+      });
     };
-    const onAnswer = (v) => advance(v);
-    const onSkipNS = () => advance(null);
+    const onSelect = (v) => setResponse(v);
+    const onMarkNS = () => setResponse(null);
+    const onContinue = () => {
+      const nextIdx = idx + 1;
+      if (nextIdx >= ITEMS.length) go({ step: 'vote' });
+      else go({ itemIndex: nextIdx });
+    };
     const onBack = () => {
       if (idx === 0) go({ step: 'priorities' });
       else go({ itemIndex: idx - 1 });
@@ -92,8 +94,9 @@ function App() {
       <ItemScreen
         index={idx}
         response={state.responses[idx]}
-        onAnswer={onAnswer}
-        onSkipNS={onSkipNS}
+        onSelect={onSelect}
+        onMarkNS={onMarkNS}
+        onContinue={onContinue}
         onBack={onBack}
       />
     );

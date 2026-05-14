@@ -20,7 +20,7 @@ function WelcomeScreen({ onStart }) {
       }>
         <div className="fade-in">
           <div className="flex items-center gap-2 mb-6">
-            <Stamp tone="soft">Encuesta de afinidad</Stamp>
+            <Stamp tone="soft">afiniPaz</Stamp>
             <Stamp tone="olive">Eje paz · 2026</Stamp>
           </div>
 
@@ -84,7 +84,7 @@ function WelcomeScreen({ onStart }) {
       <Modal open={modal==='como'} onClose={()=>setModal(null)} title="¿Cómo funciona?">
         <ol className="space-y-3 mb-4">
           <li><span className="font-mono text-[11px] text-ink-500 mr-2">01</span><span className="text-ink-900 font-medium">Datos sociodemográficos.</span> Cuatro preguntas breves, solo con fines estadísticos.</li>
-          <li><span className="font-mono text-[11px] text-ink-500 mr-2">02</span><span className="text-ink-900 font-medium">Priorización.</span> Eliges hasta tres dimensiones de las seis del instrumento. Las elegidas pesan ×1.5 en el cálculo final.</li>
+          <li><span className="font-mono text-[11px] text-ink-500 mr-2">02</span><span className="text-ink-900 font-medium">Priorización.</span> Eliges hasta tres dimensiones de las seis del instrumento. Las elegidas pesan ×2 en el cálculo final.</li>
           <li><span className="font-mono text-[11px] text-ink-500 mr-2">03</span><span className="text-ink-900 font-medium">Ítems de afinidad.</span> 16 afirmaciones, una por pantalla, en escala de 1 (Totalmente en desacuerdo) a 5 (Totalmente de acuerdo). Puedes marcar “No sabe / No responde” cuando no tengas opinión formada.</li>
           <li><span className="font-mono text-[11px] text-ink-500 mr-2">04</span><span className="text-ink-900 font-medium">Cálculo.</span> Se compara tu posición con la del candidato en cada ítem mediante la distancia normalizada <span className="font-mono text-[12px] text-ink-700">1 − |tú − candidato| / 4</span>. La afinidad global es el promedio ponderado por los pesos.</li>
           <li><span className="font-mono text-[11px] text-ink-500 mr-2">05</span><span className="text-ink-900 font-medium">Resultados.</span> Verás la clasificación de los cinco candidatos, el desglose por dimensión, y tus mayores coincidencias y distancias.</li>
@@ -197,7 +197,7 @@ function PrioritizationScreen({ value, onChange, onNext, onBack, onSkip }) {
           <h2 className="font-serif text-[26px] leading-tight text-ink-900 mb-2">¿Qué temas te importan más?</h2>
           <p className="text-[14px] text-ink-700 leading-relaxed mb-2">
             Elige <span className="text-ink-900 font-medium">hasta tres dimensiones</span> prioritarias.
-            Las marcadas tendrán un peso ligeramente mayor (<span className="font-mono">×1.5</span>) en el cálculo de tu afinidad.
+            Las marcadas tendrán el doble de peso (<span className="font-mono">×2</span>) en el cálculo de tu afinidad.
           </p>
           <div className="flex items-center gap-2 mb-5">
             <Stamp tone="soft">{set.size} de 3 elegidas</Stamp>
@@ -221,18 +221,25 @@ function PrioritizationScreen({ value, onChange, onNext, onBack, onSkip }) {
 
 // ─── Item screen (one of 16) ─────────────────────────────────────────────────
 
-function ItemScreen({ index, response, onAnswer, onBack, onSkipNS }) {
+function ItemScreen({ index, response, onSelect, onMarkNS, onContinue, onBack }) {
   const item = ITEMS[index];
   const dim  = DIMENSIONS.find(d => d.id===item.dim);
-  const isNSNR = response === null && response !== undefined; // null specifically = NS/NR
+  const isNSNR = response === null;
+  const hasSelection = response === null || (typeof response === 'number');
   return (
     <div className="bg-paper">
       <AppHeader stepLabel={"03 · Afinidad"} />
       <ProgressBar current={index+1} total={ITEMS.length} />
       <Page footer={
         <div className="space-y-2">
-          <button onClick={onSkipNS}
-            className="w-full py-3 rounded-xl bg-paper text-ink-700 font-medium text-[13.5px] border border-ink-100 hover:bg-ink-50 transition">
+          <PrimaryBtn onClick={onContinue} disabled={!hasSelection}>
+            {index+1 === ITEMS.length ? 'Finalizar' : 'Continuar'}
+          </PrimaryBtn>
+          <button onClick={onMarkNS}
+            className={"w-full py-3 rounded-xl font-medium text-[13.5px] border transition " +
+              (isNSNR
+                ? 'bg-ink-900 text-paper border-ink-900'
+                : 'bg-paper text-ink-700 border-ink-100 hover:bg-ink-50')}>
             No sabe / No responde
           </button>
           <GhostBtn onClick={onBack}>{index===0 ? 'Volver a priorización' : 'Pregunta anterior'}</GhostBtn>
@@ -240,8 +247,8 @@ function ItemScreen({ index, response, onAnswer, onBack, onSkipNS }) {
       }>
         <div key={index} className="slide-in">
           <div className="flex items-center gap-2 mb-4">
-            <span className="font-mono text-[11px] text-ink-500">DIM · {dim.id}</span>
-            <span className="text-[11.5px] text-ink-700">{dim.short}</span>
+            <span className="text-[11px] uppercase tracking-[0.14em] text-ink-500">Tema</span>
+            <span className="text-[12.5px] text-ink-900 font-medium">{dim.label}</span>
             {item.inverse && <Stamp tone="olive">formulación inversa</Stamp>}
           </div>
 
@@ -255,7 +262,7 @@ function ItemScreen({ index, response, onAnswer, onBack, onSkipNS }) {
             {LIKERT_LABELS.map(l => (
               <LikertButton key={l.v} value={l.v} label={l.label}
                 selected={response === l.v}
-                onClick={()=>onAnswer(l.v)} />
+                onClick={()=>onSelect(l.v)} />
             ))}
           </div>
         </div>

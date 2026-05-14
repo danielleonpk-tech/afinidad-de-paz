@@ -63,9 +63,14 @@ function ResultsScreen({ state, onRestart, onBackToVoting }) {
             <Stamp tone="soft">Tu afinidad</Stamp>
             {priorities.length>0 && <Stamp tone="olive">{priorities.length} prioridad{priorities.length>1?'es':''}</Stamp>}
           </div>
-          <div className="text-[11.5px] uppercase tracking-[0.16em] text-ink-500 mb-1">Tu candidato más afín en paz y conflicto</div>
-          <h1 className="font-serif text-[36px] leading-none tracking-[-0.01em] text-ink-900">{top.c.name}</h1>
-          <div className="text-[13.5px] text-ink-500 mt-1">{top.c.party}</div>
+          <div className="text-[11.5px] uppercase tracking-[0.16em] text-ink-500 mb-2">Tu candidato más afín en paz y conflicto</div>
+          <div className="flex items-center gap-3.5">
+            <CandidateAvatar candidate={top.c} size={64} />
+            <div className="min-w-0">
+              <h1 className="font-serif text-[32px] leading-[1.02] tracking-[-0.01em] text-ink-900 truncate">{top.c.name}</h1>
+              <div className="text-[13.5px] text-ink-500 mt-0.5">{top.c.party}</div>
+            </div>
+          </div>
 
           <div className="mt-5 rounded-2xl border border-ink-100 bg-paper-warm/40 p-5">
             <div className="flex items-end justify-between mb-2">
@@ -82,6 +87,9 @@ function ResultsScreen({ state, onRestart, onBackToVoting }) {
                 {(topContribs.reduce((s,t)=>s+t.distance,0)/topContribs.length).toFixed(2)}
               </span> / 4</span>
             </div>
+            <p className="mt-2.5 text-[11.5px] leading-snug text-ink-500">
+              La <span className="text-ink-700">distancia media</span> es la diferencia promedio entre tu respuesta y la del candidato en cada ítem, en una escala de 0 (idéntica) a 4 (opuesta).
+            </p>
           </div>
 
           {lowAnswer && (
@@ -108,7 +116,7 @@ function ResultsScreen({ state, onRestart, onBackToVoting }) {
               className="text-[12.5px] underline decoration-ink-300 underline-offset-4 hover:text-ink-900">
               {unweighted ? 'Ver afinidad con tu ponderación' : 'Ver afinidad sin ponderación'}
             </button>
-            <span className="font-mono text-[11px]">{unweighted ? 'pesos = 1' : '×1.5 en prioritarias'}</span>
+            <span className="font-mono text-[11px]">{unweighted ? 'pesos = 1' : '×2 en prioritarias'}</span>
           </div>
         </section>
 
@@ -183,8 +191,7 @@ function RankRow({ idx, r, delay=0 }) {
     <div className="rounded-xl border border-ink-100 p-3.5 bg-paper">
       <div className="flex items-center gap-3">
         <div className="font-mono text-[11px] text-ink-500 w-4 text-center">{idx}</div>
-        <div className="shrink-0 w-9 h-9 rounded-full grid place-items-center text-paper font-medium text-[12.5px]"
-             style={{ background: r.c.color }}>{r.c.initials}</div>
+        <CandidateAvatar candidate={r.c} size={40} />
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between">
             <div className="font-medium text-[15px] text-ink-900 truncate">{r.c.name}</div>
@@ -206,6 +213,15 @@ function DimensionMatrix({ ranking, responses, prioritySet }) {
     <div className="mt-4 space-y-3">
       {DIMENSIONS.map(dim => {
         const isPriority = prioritySet.has(dim.id);
+        const sortedInDim = [...ranking].sort(
+          (a,b) => (b.perDim?.[dim.id] ?? -1) - (a.perDim?.[dim.id] ?? -1)
+        );
+        const topInDim = sortedInDim.find(r => r.perDim?.[dim.id] != null);
+        const postureScore = topInDim
+          ? dimensionPostureScore(topInDim.c.id, dim.id, MATRIX, ITEMS)
+          : null;
+        const postureKey = dimensionPostureKey(postureScore);
+        const postureText = postureKey && dim.postures ? dim.postures[postureKey] : null;
         return (
           <div key={dim.id} className={"rounded-xl border p-3.5 " +
             (isPriority ? 'border-olive-500/40 bg-olive-500/[0.04]' : 'border-ink-100 bg-paper')}>
@@ -222,10 +238,7 @@ function DimensionMatrix({ ranking, responses, prioritySet }) {
                 const v = r.perDim?.[dim.id];
                 return (
                   <div key={r.c.id} className="flex items-center gap-3">
-                    <div className="w-8 shrink-0">
-                      <div className="w-7 h-7 rounded-full grid place-items-center text-paper font-medium text-[10.5px]"
-                           style={{ background: r.c.color }}>{r.c.initials}</div>
-                    </div>
+                    <CandidateAvatar candidate={r.c} size={28} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[12.5px] text-ink-700 truncate">{r.c.shortName}</span>
@@ -237,6 +250,14 @@ function DimensionMatrix({ ranking, responses, prioritySet }) {
                 );
               })}
             </div>
+            {postureText && topInDim && (
+              <div className="mt-3 pt-3 border-t border-ink-100">
+                <div className="text-[10.5px] uppercase tracking-[0.14em] text-ink-500 mb-1">
+                  Postura compartida con {topInDim.c.shortName}
+                </div>
+                <p className="text-[12.5px] leading-snug text-ink-700">{postureText}</p>
+              </div>
+            )}
           </div>
         );
       })}
@@ -246,8 +267,8 @@ function DimensionMatrix({ ranking, responses, prioritySet }) {
 
 function SubHeader({ candidate, kind }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-7 h-7 rounded-full grid place-items-center text-paper text-[11px] font-medium" style={{background: candidate.color}}>{candidate.initials}</div>
+    <div className="flex items-center gap-2.5">
+      <CandidateAvatar candidate={candidate} size={32} />
       <div>
         <div className="text-[11.5px] uppercase tracking-[0.16em] text-ink-500">
           {kind==='coincidences' ? 'Tus tres mayores coincidencias con' : 'Tus tres mayores distancias con'}
